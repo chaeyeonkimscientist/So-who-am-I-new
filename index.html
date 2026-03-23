@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chaeyeon Kim</title>
+<link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --blue:#4285F4; --red:#EA4335; --yellow:#FBBC04; --green:#34A853;
+  --text:#202124; --muted:#5f6368; --border:#dfe1e5; --bg:#fff; --surface:#f8f9fa;
+  --shadow:0 2px 5px 1px rgba(64,60,67,.16);
+  --shadow-h:0 4px 11px 3px rgba(64,60,67,.2);
+}
+body { font-family:arial,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+#eeg-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity:.15; z-index:0; }
+#topbar,#main,#footer { position:relative; z-index:1; }
+#topbar { display:flex; align-items:center; justify-content:flex-end; padding:8px 16px; gap:6px; height:44px; flex-shrink:0; }
+.tlink { font-size:13px; color:var(--text); text-decoration:none; padding:4px 8px; border-radius:4px; }
+.tlink:hover { background:var(--surface); }
+.ticn { width:40px; height:40px; border-radius:50%; background:transparent; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; text-decoration:none; }
+.ticn:hover { background:var(--surface); }
+.avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--green)); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; cursor:pointer; }
+#main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 16px; margin-top:-80px; transition:margin-top .4s; }
+#main.rmode { justify-content:flex-start; margin-top:0; }
+#logo-wrap { margin-bottom:28px; text-align:center; }
+#main.rmode #logo-wrap { display:none; }
+#logo { font-family:'Product Sans',sans-serif; font-size:76px; font-weight:700; letter-spacing:-2px; display:inline-block; transition:filter .8s,transform .8s; }
+.g1{color:var(--blue);} .g2{color:var(--red);} .g3{color:var(--yellow);}
+.g4{color:var(--blue);} .g5{color:var(--green);} .g6{color:var(--red);}
+.logo-sub { font-size:13px; color:var(--muted); margin-top:6px; letter-spacing:.02em; }
+#rtopbar { display:none; align-items:center; gap:16px; padding:8px 20px 0; border-bottom:1px solid var(--border); width:100%; }
+#main.rmode #rtopbar { display:flex; }
+#rlogo { font-family:'Product Sans',sans-serif; font-size:30px; font-weight:700; letter-spacing:-1px; cursor:pointer; flex-shrink:0; }
+#swrap { width:100%; max-width:584px; position:relative; }
+#main.rmode #swrap { max-width:640px; }
+#sbox { display:flex; align-items:center; gap:10px; border:1px solid var(--border); border-radius:24px; padding:10px 16px; background:var(--bg); box-shadow:var(--shadow); transition:box-shadow .2s,border-color .5s; }
+#sbox:hover,#sbox.focus { box-shadow:var(--shadow-h); border-color:transparent; }
+#sinput { flex:1; border:none; outline:none; font-size:16px; font-family:arial,sans-serif; color:var(--text); background:transparent; caret-color:var(--blue); }
+#sinput::placeholder { color:var(--muted); }
+#drop { position:absolute; top:calc(100% + 2px); left:0; right:0; background:var(--bg); border:1px solid var(--border); border-radius:0 0 24px 24px; box-shadow:0 4px 6px rgba(32,33,36,.28); z-index:200; display:none; overflow:hidden; }
+#drop.open { display:block; }
+.dlabel { font-size:12px; color:var(--muted); padding:10px 20px 6px; font-weight:500; display:flex; align-items:center; gap:6px; }
+.ditem { display:flex; align-items:center; gap:14px; padding:10px 20px; cursor:pointer; transition:background .12s; text-decoration:none; color:var(--text); }
+.ditem:hover { background:var(--surface); }
+.dico { width:34px; height:34px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px; }
+.dtxt { font-size:14px; }
+.dsub { font-size:12px; color:var(--muted); margin-top:1px; }
+.darr { margin-left:auto; font-size:12px; color:var(--muted); }
+#scontrols { margin-top:14px; display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:584px; }
+#main.rmode #scontrols { max-width:640px; }
+#srow { display:flex; align-items:center; gap:10px; width:100%; }
+.slabel { font-size:11px; font-family:monospace; white-space:nowrap; width:62px; }
+#slider { flex:1; -webkit-appearance:none; height:3px; border-radius:2px; background:linear-gradient(90deg,var(--green),var(--yellow),var(--red)); outline:none; cursor:pointer; }
+#slider::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; border:2.5px solid var(--blue); box-shadow:0 1px 4px rgba(0,0,0,.25); cursor:pointer; transition:border-color .3s; }
+#eegread { font-size:10px; color:var(--muted); font-family:monospace; letter-spacing:.04em; transition:color .5s; text-align:center; }
+#btnrow { display:flex; gap:10px; margin-top:24px; }
+#main.rmode #btnrow { display:none; }
+.gbtn { font-family:arial,sans-serif; font-size:14px; color:var(--text); background:var(--surface); border:1px solid var(--surface); border-radius:4px; padding:9px 18px; cursor:pointer; transition:box-shadow .2s,border-color .2s; }
+.gbtn:hover { box-shadow:0 1px 3px rgba(0,0,0,.2); border-color:var(--border); }
+#rbody { display:none; width:100%; max-width:660px; padding:16px 24px 40px; }
+#main.rmode #rbody { display:block; }
+.rstats { font-size:13px; color:var(--muted); margin-bottom:16px; }
+
+.rcard { margin-bottom:28px; cursor:pointer; }
+.rcard:hover .rtitle { text-decoration:underline; }
+.rsrc { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.rfavi { width:18px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+.rurl { font-size:13px; color:var(--muted); }
+.rtitle { font-size:20px; color:#1a0dab; font-weight:400; margin-bottom:4px; line-height:1.3; }
+.rdesc { font-size:14px; color:var(--muted); line-height:1.6; }
+.rtags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+.rtag { font-size:12px; padding:3px 10px; border-radius:12px; border:1px solid var(--border); color:var(--muted); background:var(--surface); }
+@keyframes fiu { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.rcard { animation:fiu .25s ease forwards; opacity:0; }
+.rcard:nth-child(3){animation-delay:.05s} .rcard:nth-child(4){animation-delay:.1s}
+.rcard:nth-child(5){animation-delay:.15s} .rcard:nth-child(6){animation-delay:.2s}
+.rcard:nth-child(7){animation-delay:.25s}
+#footer { background:var(--surface); border-top:1px solid var(--border); padding:12px 24px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+.flinks { display:flex; gap:20px; }
+.flink { font-size:13px; color:var(--muted); text-decoration:none; }
+.flink:hover { color:var(--text); text-decoration:underline; }
+#feeg { font-size:11px; color:var(--muted); font-family:monospace; }
+</style>
+</head>
+<body>
+
+<canvas id="eeg-canvas"></canvas>
+
+<div id="topbar">
+  <a href="mailto:chaeyeon@uni.minerva.edu" class="tlink">chaeyeon@uni.minerva.edu</a>
+  <a href="https://chaeyeonkim.cargo.site/" target="_blank" class="tlink">Portfolio</a>
+  <a href="https://drive.google.com/file/d/1Zd8dfxDcoFcYhUT4yRVzv1ANiIugN92C/view?usp=sharing" target="_blank" class="ticn" title="Resume">
+    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#EA4335" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+  </a>
+  <div class="ticn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#5f6368"><path d="M6 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
+  </div>
+  <div class="avatar">CK</div>
+</div>
+
+<div id="main">
+
+  <div id="rtopbar">
+    <div id="rlogo" onclick="goHome()">
+      <span class="g1">C</span><span class="g2">h</span><span class="g3">a</span><span class="g4">e</span><span class="g5">y</span><span class="g6">e</span><span class="g1">o</span><span class="g2">n</span>
+    </div>
+    <div id="swrap"></div>
+  </div>
+
+  <div id="logo-wrap">
+    <div id="logo">
+      <span class="g1">C</span><span class="g2">h</span><span class="g3">a</span><span class="g4">e</span><span class="g5">y</span><span class="g6">e</span><span class="g1">o</span><span class="g2">n</span>
+    </div>
+    <div class="logo-sub">neuroscientist · composer · filmmaker · software engineer</div>
+  </div>
+
+  <div id="swrap-home" style="width:100%;max-width:584px;position:relative;">
+    <div id="sbox">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="sinput" placeholder="Search Chaeyeon" autocomplete="off"/>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#4285F4" style="cursor:pointer;">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+      </div>
+    </div>
+    <div id="drop">
+      <div class="dlabel">✦ Trending</div>
+      <a class="ditem" href="https://linkedin.com/in/chaeyeonkimscientist" target="_blank">
+        <div class="dico">💼</div>
+        <div><div class="dtxt">LinkedIn Profile</div><div class="dsub">linkedin.com/in/chaeyeonkimscientist</div></div>
+        <div class="darr">↗</div>
+      </a>
+      <a class="ditem" href="mailto:chaeyeon@uni.minerva.edu">
+        <div class="dico">✉️</div>
+        <div><div class="dtxt">Email Chaeyeon</div><div class="dsub">chaeyeon@uni.minerva.edu</div></div>
+        <div class="darr">↗</div>
+      </a>
+      <a class="ditem" href="https://drive.google.com/file/d/1Zd8dfxDcoFcYhUT4yRVzv1ANiIugN92C/view?usp=sharing" target="_blank">
+        <div class="dico">📄</div>
+        <div><div class="dtxt">Resume</div><div class="dsub">Chaeyeon Kim — Creative Resume 2026</div></div>
+        <div class="darr">↗</div>
+      </a>
+      <a class="ditem" href="https://chaeyeonkim.cargo.site/" target="_blank">
+        <div class="dico">🌐</div>
+        <div><div class="dtxt">Portfolio</div><div class="dsub">chaeyeon.cargo.site</div></div>
+        <div class="darr">↗</div>
+      </a>
+    </div>
+  </div>
+
+  <div id="scontrols">
+    <div id="srow">
+      <span class="slabel" style="color:var(--green);text-align:right;">α: stable</span>
+      <input type="range" id="slider" min="0" max="100" value="12"/>
+      <span class="slabel" style="color:var(--red);">α: gone</span>
+    </div>
+    <div id="eegread">baseline · HPA axis: inactive · stress index: 0.12</div>
+  </div>
+
+  <div id="btnrow">
+    <button class="gbtn" onclick="doSearch('chaeyeon kim')">Chaeyeon Search</button>
+    <button class="gbtn" onclick="doSearch('the body conducts')">I'm Feeling Creative</button>
+  </div>
+
+  <div id="rbody">
+    <div class="rstats" id="rstats">About 5 results (0.03 seconds)</div>
+
+    <div class="rcard" onclick="window.open('https://chaeyeonkim.cargo.site/capstone','_blank')">
+      <div class="rsrc">
+        <div class="rfavi" style="background:#eef2ff;">🧠</div>
+        <span class="rurl">chaeyeon.cargo.site › capstone › the-body-conducts</span>
+      </div>
+      <div class="rtitle">The Body Conducts — EEG · Music · Film</div>
+      <div class="rdesc">Five original scores made of brainwaves. Three films. A female conductor whose orchestra refuses to sync, mirroring how chronic stress causes body systems to miscoordinate. No one had made this felt through biometric data, music, and film simultaneously.</div>
+      <div class="rtags">
+        <span class="rtag">EEG → MIDI</span><span class="rtag">Psychoneuroimmunology</span><span class="rtag">Science Art</span><span class="rtag">Logic Pro · Python</span>
+      </div>
+    </div>
+
+    <div class="rcard" onclick="window.open('YOUR_NOTEBOOKLM_URL','_blank')">
+      <div class="rsrc">
+        <div class="rfavi" style="background:#f1f3f4;">
+          <svg width="13" height="13" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66 2.84-.62-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+        </div>
+        <span class="rurl">notebooklm.google.com › chaeyeon-kim-brain-session</span>
+      </div>
+      <div class="rtitle">NotebookLM: AI reads my brain (and gets it slightly wrong)</div>
+      <div class="rdesc">I fed my entire capstone into NotebookLM. Here's the audio it generated, and where I push back.</div>
+      <div class="rtags"><span class="rtag">Google AI</span><span class="rtag">NotebookLM</span><span class="rtag">Audio Overview</span></div>
+    </div>
+
+    <div class="rcard" onclick="window.open('YOUR_EEG_VIZ_URL','_blank')">
+      <div class="rsrc">
+        <div class="rfavi" style="background:#e6f4ea;">🔬</div>
+        <span class="rurl">github.com › chaeyeonkimscientist › eeg-stress-simulator</span>
+      </div>
+      <div class="rtitle">EEG Stress Simulator — Built with Google AI Tools</div>
+      <div class="rdesc">Alpha suppression pipeline: raw OpenBCI → bandpass 8–13Hz → MIDI CC → real-time spectral EQ. Drag the slider above to move through CapBaseline → CapNback → CapLinkedin → CapRecovery. This is what my nervous system sounds like.</div>
+      <div class="rtags"><span class="rtag">Python</span><span class="rtag">OpenBCI</span><span class="rtag">Gemini</span><span class="rtag">Interactive</span></div>
+    </div>
+
+    <div class="rcard" onclick="window.open('YOUR_SOMNIUM_URL','_blank')">
+      <div class="rsrc">
+        <div class="rfavi" style="background:#fce8e6;">🎬</div>
+        <span class="rurl">chaeyeon.cargo.site › films › somnium</span>
+      </div>
+      <div class="rtitle">SOMNIUM — Four-Movement Symphony-Film · Berlin 2024</div>
+      <div class="rdesc">Premiered as the sole short film at Vision Vanguards × Apollo Exhibition, Berlin. 60+ orchestral and electronic layers mapping each stage of sleep deprivation. Made because therapy wasn't working and language had stopped being enough.</div>
+      <div class="rtags"><span class="rtag">Berlin Premiere</span><span class="rtag">Symphony-Film</span><span class="rtag">Logic Pro</span></div>
+    </div>
+
+    <div class="rcard" onclick="window.open('YOUR_FILMS_URL','_blank')">
+      <div class="rsrc">
+        <div class="rfavi" style="background:#fef7e0;">🎞️</div>
+        <span class="rurl">chaeyeon.cargo.site › films</span>
+      </div>
+      <div class="rtitle">Short Films — STOP · Film Couplesies · And More</div>
+      <div class="rdesc">STOP: 24-hour constraint, ML-generated Gordon Ramsay voice, Morse code, original score. Film Couplesies: three women in therapy, each a coping mechanism. Writer, director, actor, composer — all at once.</div>
+      <div class="rtags"><span class="rtag">24h Constraint</span><span class="rtag">ML Voice</span><span class="rtag">Writer · Director · Composer</span></div>
+    </div>
+
+  </div><!-- end #rbody -->
+
+</div><!-- end #main -->
+
+<div id="footer">
+  <div class="flinks">
+    <a class="flink" href="mailto:chaeyeon@uni.minerva.edu">Contact</a>
+    <a class="flink" href="https://chaeyeonkim.cargo.site/" target="_blank">Portfolio</a>
+    <a class="flink" href="https://drive.google.com/file/d/1Zd8dfxDcoFcYhUT4yRVzv1ANiIugN92C/view?usp=sharing" target="_blank">Resume</a>
+  </div>
+  <div id="feeg">α: stable</div>
+</div>
+
+<script>
+const cv=document.getElementById('eeg-canvas'),cx=cv.getContext('2d');
+let W,H,t=0,sv=0.12,tv=0.12;
+function rsz(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+rsz(); window.addEventListener('resize',rsz);
+function drawEEG(){
+  requestAnimationFrame(drawEEG);
+  sv+=(tv-sv)*.03; t+=.01;
+  cx.clearRect(0,0,W,H);
+  for(let li=0;li<5;li++){
+    cx.beginPath();
+    const amp=5+sv*38+li*4,freq=.004+sv*.011+li*.002,yb=H*(.12+li*.18);
+    const r=Math.floor(66+sv*168),g=Math.floor(133-sv*100),b=Math.floor(244-sv*180);
+    cx.strokeStyle=`rgba(${r},${g},${b},.7)`;cx.lineWidth=1;
+    for(let x=0;x<W;x++){
+      const noise=sv>.5?(Math.random()-.5)*sv*5:0;
+      const y=yb+Math.sin(x*freq+t*(1.2+sv*2.5)+li*1.8)*amp+Math.sin(x*freq*2.3+t*.8+li)*amp*.35+noise;
+      x===0?cx.moveTo(x,y):cx.lineTo(x,y);
+    }
+    cx.stroke();
+  }
+}
+drawEEG();
+
+const sl=document.getElementById('slider'),er=document.getElementById('eegread'),fe=document.getElementById('feeg');
+const states=[
+  {txt:'baseline · HPA axis: inactive · stress index: ',fa:'α: stable',tc:'#5f6368'},
+  {txt:'CapNback · cognitive load · stress index: ',fa:'α: suppressing',tc:'#EA8600'},
+  {txt:'CapLinkedin · social threat · cytokines rising · stress index: ',fa:'α: suppressed',tc:'#EA4335'},
+  {txt:'recovery · HPA axis: dampening · stress index: ',fa:'α: recovering',tc:'#1a73e8'},
+];
+sl.addEventListener('input',()=>{
+  const v=+sl.value; tv=v/100;
+  const i=v<25?0:v<50?1:v<75?2:3;
+  er.textContent=states[i].txt+tv.toFixed(2);
+  er.style.color=states[i].tc;
+  fe.textContent=states[i].fa;
+  const lg=document.getElementById('logo');
+  if(lg){
+    lg.style.filter=i===2?'hue-rotate(160deg) saturate(1.5)':i===1?'saturate(2)':'none';
+    lg.style.transform=i===2?'skewX(-2deg)':'none';
+    lg.style.transition='filter .8s,transform .8s';
+  }
+  const sb=document.getElementById('sbox');
+  const bc=['var(--border)','#FBBC04','#EA4335','#4285F4'][i];
+  const bs=['var(--shadow)','0 2px 8px rgba(251,188,4,.2)','0 2px 8px rgba(234,67,53,.2)','0 2px 8px rgba(66,133,244,.2)'][i];
+  if(sb){sb.style.borderColor=bc;sb.style.boxShadow=bs;}
+});
+
+const sinput=document.getElementById('sinput'),drop=document.getElementById('drop'),sbox=document.getElementById('sbox');
+sinput.addEventListener('focus',()=>{drop.classList.add('open');sbox.classList.add('focus');sbox.style.borderRadius='24px 24px 0 0';});
+document.addEventListener('click',e=>{
+  const sw=document.getElementById('swrap-home');
+  if(!sw||!sw.contains(e.target)){drop.classList.remove('open');if(sbox){sbox.classList.remove('focus');sbox.style.borderRadius='24px';}}
+});
+sinput.addEventListener('keydown',e=>{if(e.key==='Enter')doSearch(sinput.value||'chaeyeon kim');});
+
+function doSearch(q){
+  drop.classList.remove('open');
+  if(q)sinput.value=q;
+  document.getElementById('main').classList.add('rmode');
+  document.getElementById('rstats').textContent='About 5 results (0.0'+Math.ceil(Math.random()*9)+' seconds)';
+  const sw=document.getElementById('swrap-home');
+  document.getElementById('swrap').appendChild(sw);
+}
+function goHome(){
+  document.getElementById('main').classList.remove('rmode');
+  sinput.value='';
+  const sw=document.getElementById('swrap-home');
+  document.getElementById('main').insertBefore(sw,document.getElementById('scontrols'));
+}
+
+const queries=['who is chaeyeon kim','eeg → music pipeline','the body conducts','somnium berlin premiere','neuroscientist · composer · filmmaker'];
+let qi=0;
+function cycle(){
+  if(document.activeElement===sinput)return;
+  const q=queries[qi++%queries.length]; let i=0;
+  sinput.value=''; sinput.placeholder='';
+  const iv=setInterval(()=>{
+    if(i>=q.length){clearInterval(iv);setTimeout(()=>{sinput.value='';sinput.placeholder='Search Chaeyeon';cycle();},2600);return;}
+    sinput.value+=q[i++];
+  },55);
+}
+setTimeout(cycle,1200);
+</script>
+</body>
+</html>
