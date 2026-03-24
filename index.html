@@ -250,7 +250,7 @@ function drawEEG(){
     cx.beginPath();
     const amp=5+sv*38+li*4,freq=.004+sv*.011+li*.002,yb=H*(.12+li*.18);
     const r=Math.floor(66+sv*168),g=Math.floor(133-sv*100),b=Math.floor(244-sv*180);
-    cx.strokeStyle=`rgba(r,{r},r,{g},${b},1)`;cx.lineWidth=1.5;
+    cx.strokeStyle=`rgba(${r},${g},${b},1)`;cx.lineWidth=1.5;
     for(let x=0;x<W;x++){
       const noise=sv>.5?(Math.random()-.5)*sv*5:0;
       const y=yb+Math.sin(x*freq+t*(1.2+sv*2.5)+li*1.8)*amp+Math.sin(x*freq*2.3+t*.8+li)*amp*.35+noise;
