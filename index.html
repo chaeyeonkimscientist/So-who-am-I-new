@@ -281,8 +281,11 @@ const sinput=document.getElementById('sinput'),drop=document.getElementById('dro
 sinput.addEventListener('focus',()=>{drop.classList.add('open');sbox.classList.add('focus');sbox.style.borderRadius='24px 24px 0 0';});
 document.addEventListener('click',e=>{
   const sw=document.getElementById('swrap-home');
-  if(!sw||!sw.contains(e.target)){drop.classList.remove('open');if(sbox){sbox.classList.remove('focus');sbox.style.borderRadius='24px';}}
-});
+  if(!sw||!sw.contains(e.target)){
+    drop.classList.remove('open');
+    if(sbox){sbox.classList.remove('focus');sbox.style.borderRadius='24px';}
+  }
+},true);
 sinput.addEventListener('keydown',e=>{if(e.key==='Enter')doSearch(sinput.value||'chaeyeon kim');});
 
 function doSearch(q){
